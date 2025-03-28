@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+        }
+        canvas {
+            background: black;
+            display: block;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const paddleWidth = 10, paddleHeight = 80;
+        let playerY = canvas.height / 2 - paddleHeight / 2;
+        let aiY = canvas.height / 2 - paddleHeight / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 5, ballSpeedY = 3;
+        let playerScore = 0, aiScore = 0;
+
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawBall(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawNet() {
+            for (let i = 0; i < canvas.height; i += 20) {
+                drawRect(canvas.width / 2 - 1, i, 2, 10, "white");
+            }
+        }
+
+        function drawScore() {
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText(playerScore, canvas.width / 4, 30);
+            ctx.fillText(aiScore, (3 * canvas.width) / 4, 30);
+        }
+
+        function moveBall() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+            if (ballX <= paddleWidth && ballY >= playerY && ballY <= playerY + paddleHeight) ballSpeedX *= -1;
+            if (ballX >= canvas.width - paddleWidth && ballY >= aiY && ballY <= aiY + paddleHeight) ballSpeedX *= -1;
+
+            if (ballX < 0) { aiScore++; resetBall(); }
+            if (ballX > canvas.width) { playerScore++; resetBall(); }
+        }
+
+        function moveAI() {
+            let aiCenter = aiY + paddleHeight / 2;
+            if (aiCenter < ballY - 30) aiY += 4;
+            else if (aiCenter > ballY + 30) aiY -= 4;
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX *= -1;
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp" && playerY > 0) playerY -= 20;
+            if (e.key === "ArrowDown" && playerY < canvas.height - paddleHeight) playerY += 20;
+        });
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawNet();
+            drawScore();
+            drawRect(0, playerY, paddleWidth, paddleHeight, "white");
+            drawRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight, "white");
+            drawBall(ballX, ballY, 10, "white");
+            moveBall();
+            moveAI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
